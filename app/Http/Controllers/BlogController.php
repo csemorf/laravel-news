@@ -24,7 +24,8 @@ class BlogController extends Controller
      */
     public function create()
     {
-        //
+        $categories = Category::all();
+        return view('blog.create', compact('categories'));
     }
 
     /**
@@ -32,7 +33,38 @@ class BlogController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'category' => ['required', 'integer'],
+            'title' => ['required', 'max:255', 'min:2'],
+            'body' => ['required'],
+            'status' => ['required', 'boolean'],
+            'image' => ['required', 'image', 'max:3000'],
+
+        ]);
+
+        $imagePath = $this->uploadFiles($request);
+
+        $blog = new Blog();
+        $blog->category_id = $request->category;
+        $blog->title = $request->title;
+        $blog->body = $request->body;
+        $blog->status = $request->status;
+        $blog->image = $imagePath;
+
+        $blog->save();
+        session()->flash('success', 'your blog create successfully');
+
+        return redirect()->back();
+        // dd($request->all());
+    }
+    public function uploadFiles(Request $request)
+    {
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = $image->getClientOriginalName();
+            $image->move(public_path('uploads'), $imageName);
+            return $imagePath = 'uploads/' . $imageName;
+        }
     }
 
     /**
